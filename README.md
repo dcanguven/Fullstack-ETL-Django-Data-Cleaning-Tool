@@ -1,1 +1,3 @@
-[Video Demo](https://youtu.be/ui-VykMCISE)
+[Video Demo]()
+[![Demo Video](thumbnail.png)](https://youtu.be/ui-VykMCISE)
+
