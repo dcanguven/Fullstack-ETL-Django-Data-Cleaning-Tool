@@ -1,0 +1,9 @@
+{% extends "etl/base.html" %}
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Classification Rules</h2>
+<form method="post" class="space-y-4">
+  {% csrf_token %}
+  <textarea name="json_text" class="w-full h-72 rounded-xl border border-gray-200 p-3 font-mono text-sm focus:ring-2 focus:ring-black focus:outline-none">{{ json_text }}</textarea>
+  <button class="px-5 py-2.5 bg-black text-white rounded-xl">Save</button>
+</form>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "etl/base.html" %}
+{% block content %}
+<script>stepIndicator("preview")</script>
+
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h2 class="text-2xl font-bold text-ink">Data Preview</h2>
+    <p class="text-ink/60">Review your data before processing</p>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <!-- Seçilen dosya -->
+    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink/5 text-sm text-ink/70">
+      <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/></svg>
+      {{ filename }}
+    </span>
+
+    <form method="post" action="{% url 'process' %}" data-overlay>
+      {% csrf_token %}
+      <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white hover:opacity-90">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7L8 5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        Start Processing
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Tablo kartı -->
+<div class="rounded-2xl border border-border shadow-sm">
+  <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+    <div>
+      <div class="font-semibold text-ink">Source Data</div>
+      <div class="text-xs text-ink/50">Showing first 20 rows</div>
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <div class="min-w-max">
+      {{ table|safe }}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "etl/base.html" %}
+{% block content %}
+<script>stepIndicator("upload")</script>
+
+<div class="text-center max-w-2xl mx-auto mt-4 mb-8">
+  <h1 class="text-4xl md:text-5xl font-extrabold text-ink tracking-tight">Transform Your Data</h1>
+  <p class="text-lg text-ink/60 mt-3">Upload your CSV or Excel file to get started with our powerful ETL pipeline</p>
+</div>
+
+<form id="upload-form" method="post" enctype="multipart/form-data" class="max-w-3xl mx-auto space-y-6" data-overlay>
+  {% csrf_token %}
+
+  <!-- Dropzone (alan tıklanınca DEĞİL, sadece butonla dosya seçici açılır) -->
+  <div id="dropzone" class="rounded-2xl border-2 border-dashed border-border bg-white">
+    <div class="flex flex-col items-center justify-center text-center gap-4 py-12 select-none">
+      <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 16.5a4.5 4.5 0 01-4.5 4.5h-7A4.5 4.5 0 014 16.5 4.5 4.5 0 018.5 12H9" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-base font-semibold text-ink">Upload your data file</div>
+        <div class="text-sm text-ink/60 mt-1">Drag and drop your CSV or Excel file here, or use the button</div>
+      </div>
+
+      <!-- Gizli input -->
+      <input id="file-input" type="file" name="file" class="hidden" accept=".csv,.xls,.xlsx">
+
+      <!-- Aksiyon butonları -->
+      <div class="flex items-center gap-3">
+        <button type="button" id="choose-btn" class="px-4 py-2 rounded-xl bg-primary text-white hover:opacity-90">
+          Choose File
+        </button>
+        <button type="button" id="change-btn" class="px-4 py-2 rounded-xl border border-border text-ink/80 hover:bg-surface hidden">
+          Change file
+        </button>
+      </div>
+
+      <!-- Durum satırı: dosya adı + boyut -->
+      <div id="file-status" class="text-sm text-ink/70 hidden">
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink/5">
+          <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="file-name">file.csv</span>
+          <span class="text-ink/50" id="file-size">(0 MB)</span>
+        </span>
+      </div>
+
+      <div class="text-xs text-ink/40">Supported formats: .csv, .xlsx, .xls · Max size: 50MB</div>
+    </div>
+  </div>
+
+  <div class="flex justify-center">
+    <button class="px-6 py-3 rounded-xl bg-primary text-white hover:opacity-90 transition">Continue</button>
+  </div>
+</form>
+
+<script>
+  const dz = document.getElementById("dropzone");
+  const fi = document.getElementById("file-input");
+  const chooseBtn = document.getElementById("choose-btn");
+  const changeBtn = document.getElementById("change-btn");
+  const statusBox = document.getElementById("file-status");
+  const nameEl = document.getElementById("file-name");
+  const sizeEl = document.getElementById("file-size");
+
+  // Drag & drop sadece dosyayı input'a koyar; alanı tıklamak dosya seçici açmaz
+  dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("border-primary") });
+  dz.addEventListener("dragleave", () => dz.classList.remove("border-primary"));
+  dz.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dz.classList.remove("border-primary");
+    if (e.dataTransfer.files.length) {
+      fi.files = e.dataTransfer.files;
+      onFileSelected(fi.files[0]);
+    }
+  });
+
+  // Sadece bu buton(lar) dosya seçiciyi açar
+  chooseBtn.addEventListener("click", () => fi.click());
+  changeBtn.addEventListener("click", () => fi.click());
+
+  fi.addEventListener("change", () => {
+    if (fi.files.length) onFileSelected(fi.files[0]);
+  });
+
+  function onFileSelected(file){
+    // Bilgi göster
+    nameEl.textContent = file.name;
+    sizeEl.textContent = `(${formatSize(file.size)})`;
+    statusBox.classList.remove("hidden");
+
+    // UI değişimi: Choose gizlenir, Change görünür
+    chooseBtn.classList.add("hidden");
+    changeBtn.classList.remove("hidden");
+
+    showToast(`File selected: ${file.name}`);
+  }
+
+  function formatSize(bytes){
+    if (bytes === 0) return "0 B";
+    const k = 1024, sizes = ["B","KB","MB","GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return (bytes / Math.pow(k, i)).toFixed(1) + " " + sizes[i];
+  }
+</script>
+{% endblock %}

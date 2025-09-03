@@ -1,0 +1,38 @@
+{% extends "etl/base.html" %}
+{% block content %}
+<script>stepIndicator("processing")</script>
+
+<div class="text-center mb-6">
+  <h2 class="text-2xl font-bold text-ink mb-1">Processing Your Data</h2>
+  <p class="text-ink/60">Please wait while we transform your data through our ETL pipeline</p>
+</div>
+
+<!-- Hafif progress kartı (görsel amaçlı) -->
+<div class="rounded-2xl border border-border bg-primary/5">
+  <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+    <div class="font-semibold text-ink">Processing Status</div>
+    <div class="text-sm text-ink/60" id="pct">0%</div>
+  </div>
+  <div class="p-4">
+    <div class="w-full h-2 bg-white rounded-full overflow-hidden">
+      <div id="bar" class="h-2 bg-primary rounded-full" style="width:0%"></div>
+    </div>
+    <div class="text-sm text-ink/60 mt-2" id="msg">Initializing pipeline…</div>
+  </div>
+</div>
+
+<form id="auto" method="post" class="hidden">
+  {% csrf_token %}
+  <button>Run</button>
+</form>
+
+<script>
+  showOverlay();
+  // Basit sahte progress (UI hissi), gerçek iş backend'de
+  let k=0; const steps=["Validating data structure…","Cleaning data…","Applying transformations…","Generating output…","Finalizing…"];
+  const bar=document.getElementById("bar"); const pct=document.getElementById("pct"); const msg=document.getElementById("msg");
+  const it=setInterval(()=>{k+=20; if(k>=100){k=100; clearInterval(it)}; bar.style.width=k+"%"; pct.textContent=k+"%"; msg.textContent=steps[Math.min(Math.floor(k/20), steps.length-1)];},500);
+  // Gerçek çalıştırma: otomatik POST
+  document.addEventListener("DOMContentLoaded",()=>{document.getElementById("auto").submit()});
+</script>
+{% endblock %}

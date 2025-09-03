@@ -1,0 +1,60 @@
+{% extends "etl/base.html" %}
+{% block content %}
+<script>stepIndicator("completed"); hideOverlay()</script>
+
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h2 class="text-2xl font-bold text-ink">Processing Complete</h2>
+    <p class="text-ink/60">Your data has been successfully processed and is ready for download</p>
+  </div>
+
+  <a href="{{ url }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white hover:opacity-90">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Download Results
+  </a>
+</div>
+
+<!-- Dosya adları -->
+<div class="flex flex-wrap items-center gap-3 mb-4">
+  <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink/5 text-sm text-ink/70">
+    <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/></svg>
+    Original: {{ src_filename }}
+  </span>
+  <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink/5 text-sm text-ink/70">
+    <svg class="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Processed: {{ out_filename }}
+  </span>
+  <span class="text-sm text-ink/50">Rows: {{ stats.rows }} • Cols: {{ stats.cols }} • Unknown: {{ stats.unknown }}</span>
+</div>
+
+<!-- Yan yana iki tablo (mobilde alt alta) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="rounded-2xl border border-border shadow-sm">
+    <div class="px-4 py-3 border-b border-border">
+      <div class="font-semibold text-ink">Original Data</div>
+      <div class="text-xs text-ink/50">Showing first 10 rows</div>
+    </div>
+    <div class="overflow-x-auto">
+      <div class="min-w-max">
+        {{ preview_table_src|safe }}
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-border shadow-sm">
+    <div class="px-4 py-3 border-b border-border">
+      <div class="font-semibold text-ink">Processed Data</div>
+      <div class="text-xs text-ink/50">Showing first 10 rows</div>
+    </div>
+    <div class="overflow-x-auto">
+      <div class="min-w-max">
+        {{ preview_table_out|safe }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-6">
+  <a class="underline text-ink/70 hover:text-ink" href="{% url 'upload' %}">Start Over</a>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Local ETL</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Tailwind CDN (v3) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: '#2563EB' },        /* mavi vurgu */
+          ink: { DEFAULT: '#0F172A' },            /* başlık rengi */
+          muted: { DEFAULT: '#6B7280' },          /* ikincil metin */
+          surface: { DEFAULT: '#F8FAFC' },        /* arka plan */
+          card: { DEFAULT: '#FFFFFF' },
+          border: { DEFAULT: '#E5E7EB' }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif }
+  .bg-surface-grad { background: linear-gradient(180deg, #F2F6FF 0%, #FFFFFF 30%); }
+  /* Tablo görünümü (sticky header + zebra) */
+  table { font-size: 0.825rem; border-collapse: collapse; }
+  th, td { padding: 8px 12px; border: 1px solid #E5E7EB; white-space: nowrap; }
+  thead th { position: sticky; top: 0; background: #F8FAFC; z-index: 1; }
+  tbody tr:nth-child(even) { background: #F9FAFB; }
+  /* Step indicator JS ile dolduruluyor */
+</style>
+</head>
+<body class="min-h-screen bg-surface-grad">
+  <!-- Topbar -->
+  <header class="bg-white/80 backdrop-blur border-b border-border">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="text-lg font-semibold text-ink">Local ETL</span>
+      </div>
+      <a href="{% url 'upload' %}" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-sm text-ink/80 hover:bg-surface">
+        Start Over
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 1111.314 6.314" stroke="#111827" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-6">
+    <div class="bg-card rounded-2xl shadow-xl ring-1 ring-black/5">
+      <div class="p-6">
+        <!-- Step Indicator -->
+        <div id="steps" class="mb-6"></div>
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-5 right-5 hidden z-50">
+    <div class="px-4 py-3 bg-ink text-white rounded-xl shadow-lg text-sm" id="toast-text"></div>
+  </div>
+  <!-- Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-white/60 backdrop-blur-sm hidden z-40">
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="flex items-center gap-3">
+        <svg class="animate-spin h-6 w-6" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="#111827" stroke-width="4"></circle>
+          <path class="opacity-90" d="M4 12a8 8 0 018-8" stroke="#111827" stroke-width="4" stroke-linecap="round"></path>
+        </svg>
+        <span class="text-sm text-ink/80">Processing…</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showToast(t){const el=document.getElementById("toast");const tx=document.getElementById("toast-text");tx.textContent=t;el.classList.remove("hidden");setTimeout(()=>el.classList.add("hidden"),2200)}
+    function showOverlay(){document.getElementById("overlay").classList.remove("hidden")}
+    function hideOverlay(){document.getElementById("overlay").classList.add("hidden")}
+    document.addEventListener("submit",(e)=>{if(e.target.matches("form[data-overlay]")){showOverlay()}})
+
+    // Step Indicator builder (Upload → Preview → Process → Complete)
+    function stepIndicator(current){
+      const steps = ["upload","preview","processing","completed"];
+      const labels = ["Upload","Preview","Process","Complete"];
+      const container = document.getElementById("steps");
+      if(!container) return;
+      container.innerHTML = "";
+      const row = document.createElement("div");
+      row.className = "flex items-center gap-6 sm:gap-10";
+      const currentIndex = steps.indexOf(current);
+
+      labels.forEach((label, i) => {
+        const isDone = i < currentIndex;
+        const isCurrent = i === currentIndex;
+
+        const group = document.createElement("div");
+        group.className = "flex items-center gap-3";
+
+        const badge = document.createElement("div");
+        badge.className = "w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all " +
+          (isDone ? "bg-green-500 text-white" :
+           isCurrent ? "bg-primary text-white shadow-md" :
+           "bg-surface text-ink/40 border border-border");
+        badge.textContent = isDone ? "✓" : (i+1);
+
+        const text = document.createElement("span");
+        text.className = "text-sm font-medium " + (isDone||isCurrent ? "text-ink" : "text-ink/50");
+        text.textContent = label;
+
+        group.appendChild(badge);
+        group.appendChild(text);
+
+        row.appendChild(group);
+        if(i < labels.length-1){
+          const line = document.createElement("div");
+          line.className = "hidden sm:block w-14 h-[2px] " + (i < currentIndex ? "bg-green-500" : "bg-border");
+          row.appendChild(line);
+        }
+      });
+      container.appendChild(row);
+    }
+    window.stepIndicator = stepIndicator;
+  </script>
+</body>
+</html>
